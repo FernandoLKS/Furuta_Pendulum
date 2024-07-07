@@ -4,7 +4,6 @@ class FurutaPendulum():
     '''
     Class representing the Furuta Pendulum system.
     '''
-
     def __init__(self):
         '''
         Initialize parameters and state variables of the Furuta Pendulum.
@@ -28,18 +27,22 @@ class FurutaPendulum():
         self.pendulumVelocity = 0           # Velocity of the pendulum (rad/s)
         self.pendulumAcceleration = 0       # Acceleration of the pendulum (rad/s^2)
       
-    def InitialConditions(self):
+    def set_InitialConditions(self, armAngle=0, armVelocity=0, pendulumAngle=0, pendulumVelocity=0):
         '''
         Set initial conditions for the Furuta Pendulum.
         '''
-        self.armAngle = np.pi
-        self.armVelocity = 0
-        self.pendulumAngle = 4/3 * np.pi
-        self.pendulumVelocity = 0
-        
+        self.armAngle = armAngle
+        self.armVelocity = armVelocity
+        self.pendulumAngle = pendulumAngle
+        self.pendulumVelocity = pendulumVelocity
+    
+    def get_InitialConditions(self):
+        '''
+        Get initial conditions for the Furuta Pendulum.
+        '''        
         return [self.armAngle, self.armVelocity, self.pendulumAngle, self.pendulumVelocity]    
     
-    def Dynamic(self, t, states, torque=0):
+    def Dynamic(self, t, state, torque=0):
         '''
         Non-linear ODE for Furuta pendulum system.
 
@@ -51,10 +54,10 @@ class FurutaPendulum():
         Outputs:
             Array [arm velocity, arm acceleration, pendulum velocity, pendulum acceleration]
         '''
-        self.armAngle = states[0]
-        self.armVelocity = states[1]
-        self.pendulumAngle = states[2] 
-        self.pendulumVelocity = states[3]  
+        self.armAngle = state[0]
+        self.armVelocity = state[1]
+        self.pendulumAngle = state[2] 
+        self.pendulumVelocity = state[3]  
         
         self.tau_m = torque  
         

@@ -5,8 +5,15 @@ class Swing_up():
     '''
     Class representing the Swing-up method.
     '''
-    def __init__(self):
-        pass
+    def __init__(self, FurutaPendulum):
+        self.FurutaPendulum = FurutaPendulum
+    
+    def EnergySystem(self):        
+        Energy = (1/2 * (self.FurutaPendulum.Jb + self.FurutaPendulum.Mp + (self.FurutaPendulum.lb **2)) * self.FurutaPendulum.pendulumVelocity**2) - (self.FurutaPendulum.Mp * self.FurutaPendulum.gravityForce * self.FurutaPendulum.lb  *(np.cos(self.FurutaPendulum.pendulumAngle) + 1))
+        return Energy
+    
+    def SignalControlTorque(self, Energy, n):
+        s = (n * self.FurutaPendulum.gravityForce * np.sign(Energy) * self.FurutaPendulum.pendulumVelocity * np.cos(self.FurutaPendulum.pendulumAngle)) / self.FurutaPendulum.r
 
 class QLearning():
     '''
@@ -17,9 +24,9 @@ class QLearning():
         self.learning_rate = learning_rate
         self.gamma = reward_decay
         self.epsilon = e_greedy
-        self.q_table = pd.DataFrame(colums=self.actions, dtype=np.float64)
+        self.q_table = None
         
-    def choose_action(self):
+    def ChooseAction(self):
         action = 0
         if np.random.uniform(0, 1) < self.epsilon:
             pass
@@ -27,6 +34,6 @@ class QLearning():
             pass
         return action
     
-    def learn(self, state, action, reward, next_state):
+    def Learn(self, state, action, reward, next_state):
         q_predict = self.q_table.loc[state, action]
         
