@@ -12,11 +12,10 @@ def main():
     simulation = Simulation(FPendulum, 0.01, 1000, 0)
     
     simulationGraph = GraphSimulation(simulation)
-    simulationGraph.PlotPhaseMaps()
-    simulationGraph.PlotSimulation()
+    simulationGraph.Plot_phase_maps()
+    simulationGraph.Plot_pendulum_simulation()
     
     swingUp = Swing_up(FPendulum)
-
     
 if __name__ == '__main__':
     main()

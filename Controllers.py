@@ -2,9 +2,6 @@ import numpy as np
 import pandas as pd
 
 class Swing_up():
-    '''
-    Class representing the Swing-up method.
-    '''
     def __init__(self, FurutaPendulum):
         self.FurutaPendulum = FurutaPendulum
     
@@ -16,9 +13,6 @@ class Swing_up():
         s = (n * self.FurutaPendulum.gravityForce * np.sign(Energy) * self.FurutaPendulum.pendulumVelocity * np.cos(self.FurutaPendulum.pendulumAngle)) / self.FurutaPendulum.r
 
 class QLearning():
-    '''
-    Class representing the Q-Learning algorithm.
-    '''
     def __init__(self, actions, learning_rate=0.01, reward_decay=0.9, e_greedy=0.9):
         self.actions = actions
         self.learning_rate = learning_rate
