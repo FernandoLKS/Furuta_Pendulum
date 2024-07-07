@@ -4,6 +4,11 @@ import matplotlib.animation as animation
 import numpy as np
 
 class Simulation():  
+    # Start the simulation for the Furuta pendulum
+    # inputs:   FurutaPendulum: Object 'FurutaPendulum'
+    #           ts: Time step for the simulation
+    #           max_iteration: Total number of iterations the simulation 
+    #           torque: Initial torque applied to the system
     
     def __init__(self, FurutaPendulum, ts, max_iterations, torque):
         self.ts = ts
@@ -14,7 +19,9 @@ class Simulation():
         self.FurutaPendulum = FurutaPendulum    
         
         self.Execute()
-         
+    
+    # Load the initial parameters and solve the ODEs of the system dynamic  
+    
     def Execute(self):  
         self.states = np.zeros((self.max_iterations, 4))   
         self.states[0, :] = self.FurutaPendulum.InitialConditions()               
@@ -24,10 +31,20 @@ class Simulation():
             self.states[i, :] = solution.y[:, -1]   
         
         self.PlotPhaseMaps()       
-        self.PlotSimulation()     
+        self.PlotSimulation()  
+        
+    # Shows system phase maps   
         
     def PlotPhaseMaps(self):
-
+        
+        # Calculate ODEs for map points
+        # inputs:   ax: Matplotlib axis object for plotting
+        #           indexX: Index of the state variable to be plotted on the x-axis
+        #           indexY: Index of the state variable to be plotted on the y-axis
+        #           equilibriumPoints: Array of equilibrium points to be plotted (optional)
+        #           xLabel: Label for the x-axis
+        #           yLabel: Label for the y-axis
+            
         def derivateVectors(ax, indexX, indexY, equilibriumPoints, xLabel, yLabel):
             limit = 2 * np.pi 
             numPoints = 100
@@ -63,14 +80,24 @@ class Simulation():
         # Arm angle x arm velocity      
         derivateVectors(axs[0], 0, 1, None, 'Arm angle [rad]', 'Arm velocity [rad/s]')        
 
-        # Pendulum angle x pendulum velocity  
-        equilibriumPointsPendulum = np.array([[-np.pi, 0], [0,0], [np.pi,0]])
-        derivateVectors(axs[1], 2, 3, equilibriumPointsPendulum, 'Pendulum angle [rad]', 'Pendulum velocity [rad/s]')
+        # Pendulum angle x pendulum velocity
+        derivateVectors(axs[1], 2, 3, np.array([[-np.pi, 0], [0,0], [np.pi,0]]), 'Pendulum angle [rad]', 'Pendulum velocity [rad/s]')
 
         plt.tight_layout()
         plt.show()
 
+    # Show system simulation
+    
     def PlotSimulation(self):
+        # Set up the axis for animation plot
+        # inputs:   ax: Matplotlib axis object for plotting
+        #           title: Title of the plot
+        #           limit: Limit for the x and y axis
+        # outputs:  line: Line2D object for the main plot  
+        #           trace: Line2D object for the trace plot
+        #           timeTemplate: Template string for displaying time
+        #           timeText: Text object for displaying time
+        
         def setupAxis(ax, title, limit):            
             ax.set_title(title)
             ax.set_xlim(-limit, limit)
@@ -83,6 +110,18 @@ class Simulation():
             timeText = ax.text(0.05, 0.9, '', transform=ax.transAxes)
             return line, trace, timeTemplate, timeText
 
+        # Update the animation frame
+        # inputs:   i: Current frame index
+        #           xData: Array of x coordinates for the plot
+        #           yData: Array of y coordinates for the plot
+        #           line: Line2D object for the main plot
+        #           trace: Line2D object for the trace plot
+        #           timeTemplate: Template string for displaying time
+        #           timeText: Text object for displaying time
+        # outputs:  line: Updated Line2D object for the main plot  
+        #           trace: Updated Line2D object for the trace plot
+        #           timeText: Updated Text object for displaying time
+        
         def animate(i, xData, yData, line, trace, timeTemplate, timeText):
             thisX = [0, xData[i]]
             thisY = [0, yData[i]]

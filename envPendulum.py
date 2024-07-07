@@ -3,24 +3,24 @@ import numpy as np
 class FurutaPendulum():
    
     def __init__(self):
-        self.Mb = 0.173
-        self.Mp = 0.029
-        self.r = 0.005
-        self.Lp = 0.15
-        self.lp = 0.075        
-        self.Jb = 0.00094057
-        self.Jp = 0.0002175
-        self.Bb = 0.0008
-        self.Bp = 0.0008
-        self.tau_m = 0
-        self.gravityForce = 9.81    
+        self.Mb = 0.173                     # Mass of the arm (kg)
+        self.Mp = 0.029                     # Mass of the pendulum (kg)
+        self.r = 0.005                      # Radius of the arm (m)
+        self.Lp = 0.15                      # Total length of the pendulum (m)
+        self.lp = 0.075                     # Length to the pendulum's center of mass (m)
+        self.Jb = 0.00094057                # Moment of inertia of the arm (kg.m^2)
+        self.Jp = 0.0002175                 # Moment of inertia of the pendulum (kg.m^2)
+        self.Bb = 0.0008                    # Viscous friction coefficient for the arm (N.m.s)
+        self.Bp = 0.0008                    # Viscous friction coefficient for the pendulum (N.m.s)
+        self.tau_m = 0                      # Applied torque (N.m)
+        self.gravityForce = 9.81            # Gravitational acceleration (m/s^2) 
         
-        self.armAngle = 0
-        self.armVelocity = 0
-        self.armAcceleration = 0
-        self.pendulumAngle = 0
-        self.pendulumVelocity = 0
-        self.pendulumAcceleration = 0
+        self.armAngle = 0                   # Angle of the arm (rad)
+        self.armVelocity = 0                # Velocity of the arm (rad/s)
+        self.armAcceleration = 0            # Acceleration of the arm (rad/s^2)
+        self.pendulumAngle = 0              # Angle of the pendulum (rad)
+        self.pendulumVelocity = 0           # Velocity of the pendulum (rad/s)
+        self.pendulumAcceleration = 0       # Acceleration of the pendulum (rad/s^2)
       
     def InitialConditions(self):
         self.armAngle = np.pi
@@ -29,7 +29,12 @@ class FurutaPendulum():
         self.pendulumVelocity = 0
         
         return [self.armAngle, self.armVelocity, self.pendulumAngle, self.pendulumVelocity]    
-        
+    
+    # Non-linear ODE for Furuta pendulum system
+    # inputs:   states: [arm position, arm velocity, pendulum position and pendulum velocity]
+    #           torque: initial torque of the system
+    # outputs: [arm velocity, arm acceleration, pendulum velocity and pendulum acceleration]
+       
     def Dynamic(self, t, states, torque=0):
         self.armAngle = states[0]
         self.armVelocity = states[1]
