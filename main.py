@@ -1,9 +1,10 @@
+from envPendulum import FurutaPendulum
 from simulationPendulum import Simulation
 from qLearning import QLearning
 
 def main():
-    simulation = Simulation(0.01, 1000, 0)
-    simulation.Execute()    
+    FPendulum = FurutaPendulum()
+    Simulation(FPendulum, 0.01, 1000, 0)  
     
     #RLAlgorithm = QLearning()
     

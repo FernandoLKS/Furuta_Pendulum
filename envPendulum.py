@@ -1,6 +1,6 @@
 import numpy as np
 
-class PendulumFuruta():
+class FurutaPendulum():
    
     def __init__(self):
         self.Mb = 0.173

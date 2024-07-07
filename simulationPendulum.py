@@ -1,4 +1,3 @@
-from envPendulum import PendulumFuruta
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -6,13 +5,15 @@ import numpy as np
 
 class Simulation():  
     
-    def __init__(self, ts, max_iterations, torque):
+    def __init__(self, FurutaPendulum, ts, max_iterations, torque):
         self.ts = ts
         self.max_iterations = max_iterations
         self.torque = torque
         
         self.states = None
-        self.FurutaPendulum = PendulumFuruta()    
+        self.FurutaPendulum = FurutaPendulum    
+        
+        self.Execute()
          
     def Execute(self):  
         self.states = np.zeros((self.max_iterations, 4))   
