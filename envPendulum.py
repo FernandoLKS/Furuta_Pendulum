@@ -1,8 +1,14 @@
 import numpy as np
 
 class FurutaPendulum():
-   
+    '''
+    Class representing the Furuta Pendulum system.
+    '''
+
     def __init__(self):
+        '''
+        Initialize parameters and state variables of the Furuta Pendulum.
+        '''
         self.Mb = 0.173                     # Mass of the arm (kg)
         self.Mp = 0.029                     # Mass of the pendulum (kg)
         self.r = 0.005                      # Radius of the arm (m)
@@ -23,6 +29,9 @@ class FurutaPendulum():
         self.pendulumAcceleration = 0       # Acceleration of the pendulum (rad/s^2)
       
     def InitialConditions(self):
+        '''
+        Set initial conditions for the Furuta Pendulum.
+        '''
         self.armAngle = np.pi
         self.armVelocity = 0
         self.pendulumAngle = 4/3 * np.pi
@@ -30,12 +39,18 @@ class FurutaPendulum():
         
         return [self.armAngle, self.armVelocity, self.pendulumAngle, self.pendulumVelocity]    
     
-    # Non-linear ODE for Furuta pendulum system
-    # inputs:   states: [arm position, arm velocity, pendulum position and pendulum velocity]
-    #           torque: initial torque of the system
-    # outputs: [arm velocity, arm acceleration, pendulum velocity and pendulum acceleration]
-       
     def Dynamic(self, t, states, torque=0):
+        '''
+        Non-linear ODE for Furuta pendulum system.
+
+        Inputs:
+            t: Time 
+            states: Array [arm angle, arm velocity, pendulum angle, pendulum velocity]
+            torque: Applied torque (N.m)
+
+        Outputs:
+            Array [arm velocity, arm acceleration, pendulum velocity, pendulum acceleration]
+        '''
         self.armAngle = states[0]
         self.armVelocity = states[1]
         self.pendulumAngle = states[2] 
@@ -47,4 +62,4 @@ class FurutaPendulum():
         self.pendulumAcceleration = ((-self.Bb * self.pendulumVelocity) + (self.Mp * self.lp * self.r * self.armAcceleration * np.cos(self.pendulumAngle)) - (self.Mp * self.lp * self.gravityForce * np.sin(self.pendulumAngle))) / (self.Jp + (self.Mp * self.lp**2))
                   
         derivates = [self.armVelocity, self.armAcceleration, self.pendulumVelocity, self.pendulumAcceleration]
-        return derivates          
+        return derivates
