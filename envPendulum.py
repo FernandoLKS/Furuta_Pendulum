@@ -21,24 +21,16 @@ class FurutaPendulum():
         self.pendulumAngle = 0              # Angle of the pendulum (rad)
         self.pendulumVelocity = 0           # Velocity of the pendulum (rad/s)
         self.pendulumAcceleration = 0       # Acceleration of the pendulum (rad/s^2)
-      
-    def set_InitialConditions(self, armAngle=0, armVelocity=0, pendulumAngle=0, pendulumVelocity=0):
-        self.armAngle = armAngle
-        self.armVelocity = armVelocity
-        self.pendulumAngle = pendulumAngle
-        self.pendulumVelocity = pendulumVelocity
     
-    def get_InitialConditions(self):
-        return [self.armAngle, self.armVelocity, self.pendulumAngle, self.pendulumVelocity]    
-    
-    def Dynamic(self, t, state, torque=0):
+    def Dynamic(self, t, state, u=0):
         self.armAngle = state[0]
         self.armVelocity = state[1]
         self.pendulumAngle = state[2] 
         self.pendulumVelocity = state[3]  
         
-        self.tau_m = torque  
+        self.tau_m = u  
         
+        # equations of motion arm and pendulum
         self.armAcceleration = (self.tau_m - (self.Bb * self.armVelocity) + ((self.Mp * self.lp * self.r) * ((self.pendulumAcceleration * np.cos(self.pendulumAngle)) - (self.pendulumVelocity**2 * np.sin(self.pendulumAngle))))) / (self.Jb + (self.Mp * self.r**2))
         self.pendulumAcceleration = ((-self.Bb * self.pendulumVelocity) + (self.Mp * self.lp * self.r * self.armAcceleration * np.cos(self.pendulumAngle)) - (self.Mp * self.lp * self.gravityForce * np.sin(self.pendulumAngle))) / (self.Jp + (self.Mp * self.lp**2))
                   

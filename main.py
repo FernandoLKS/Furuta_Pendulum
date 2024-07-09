@@ -6,13 +6,13 @@ from Controllers import Swing_up, QLearning
 import numpy as np
 
 def main():
-    FPendulum = FurutaPendulum()
-    FPendulum.set_InitialConditions(np.pi, 0, 4/3 * np.pi, 0)
+    FPendulum = FurutaPendulum()    
     
-    simulation = Simulation(FPendulum, 0.01, 1000, 0)
+    simulation = Simulation(FPendulum, 0.01, 1000, 0, np.pi, 0, 4/3 * np.pi, 0)  
+    simulation.Run_simulation_pendulum()   
     
     simulationGraph = GraphSimulation(simulation)
-    simulationGraph.Plot_phase_maps()
+    #simulationGraph.Plot_phase_maps()
     simulationGraph.Plot_pendulum_simulation()
     
     swingUp = Swing_up(FPendulum)

@@ -7,7 +7,6 @@ class GraphSimulation():
     def __init__(self, simulation):
         self.simulation = simulation
         self.FurutaPendulum = simulation.get_FurutaPendulumInstance()
-        self.states = simulation.get_States()
         
     def Plot_phase_maps(self): 
         fig, axs = plt.subplots(1, 2, figsize=(10, 5))            
@@ -19,6 +18,18 @@ class GraphSimulation():
         plt.show()
         
     def _Fig_phase_map(self, ax, indexX, indexY, equilibriumPoints, xLabel, yLabel):
+        X, Y, derivatesX, derivatesY, magnitude = self._Data_for_phase_map(indexX, indexY)
+
+        if equilibriumPoints is not None:
+            ax.scatter(equilibriumPoints[:, 0], equilibriumPoints[:, 1], color='r', s=10, zorder=2)           
+
+        ax.streamplot(X, Y, derivatesX, derivatesY, color='b', linewidth=magnitude, density=1.6)
+        ax.set_title(f'{xLabel} x {yLabel}')
+        ax.set_xlabel(xLabel)
+        ax.set_ylabel(yLabel)
+        ax.grid()
+
+    def _Data_for_phase_map(self, indexX, indexY):
         limit = 2 * np.pi 
         numPoints = 100
         X, Y = np.meshgrid(np.linspace(-limit, limit, numPoints), np.linspace(-limit, limit, numPoints)) 
@@ -38,28 +49,18 @@ class GraphSimulation():
 
         magnitude = np.sqrt(derivatesX**2 + derivatesY**2)
         magnitude /= np.max(magnitude)
-
-        if equilibriumPoints is not None:
-            ax.scatter(equilibriumPoints[:, 0], equilibriumPoints[:, 1], color='r', s=10, zorder=2)           
-
-        ax.streamplot(X, Y, derivatesX, derivatesY, color='b', linewidth=magnitude, density=1.6)
-        ax.set_title(f'{xLabel} x {yLabel}')
-        ax.set_xlabel(xLabel)
-        ax.set_ylabel(yLabel)
-        ax.grid()
+        
+        return X, Y, derivatesX, derivatesY, magnitude
 
     def Plot_pendulum_simulation(self):
         fig, axs = plt.subplots(1, 2, figsize=(15, 5))
         
-        ArmAngles = self.states[:, 0]
-        PendulumAngles = self.states[:, 2] 
+        ArmAngles = self.simulation.get_States()[:, 0]
+        PendulumAngles = self.simulation.get_States()[:, 2] 
         
-        xDataArm = self.FurutaPendulum.r * np.sin(ArmAngles)
-        yDataArm = -self.FurutaPendulum.r * np.cos(ArmAngles)
-        
-        xDataPendulum = self.FurutaPendulum.Lp * np.sin(PendulumAngles)
-        yDataPendulum = -self.FurutaPendulum.Lp * np.cos(PendulumAngles)        
-        
+        xDataArm, yDataArm = self._Data_for_pendulum_simulation(ArmAngles, self.FurutaPendulum.r)
+        xDataPendulum, yDataPendulum = self._Data_for_pendulum_simulation(PendulumAngles, self.FurutaPendulum.Lp)      
+   
         lineArm, traceArm, timeTemplateArm, timeTextArm = self._Fig_pendulum_simulation(axs[0], 'Arm Motion', self.FurutaPendulum.r)        
         linePendulum, tracePendulum, timeTemplatePendulum, timeTextPendulum = self._Fig_pendulum_simulation(axs[1], 'Pendulum Motion', self.FurutaPendulum.Lp)
 
@@ -67,8 +68,8 @@ class GraphSimulation():
         pendulum_anim = animation.FuncAnimation(fig, self._Animate_pendulum_simulation, fargs=(xDataPendulum, yDataPendulum, linePendulum, tracePendulum, timeTemplatePendulum, timeTextPendulum), frames=len(xDataPendulum), interval=10, blit=True)
 
         plt.tight_layout()
-        plt.show()       
-        
+        plt.show()
+               
     def _Fig_pendulum_simulation(self, ax, title, limit):
         ax.set_title(title)
         ax.set_xlim(-limit, limit)
@@ -80,7 +81,13 @@ class GraphSimulation():
         timeTemplate = 'time = %.1fs'
         timeText = ax.text(0.05, 0.9, '', transform=ax.transAxes)
         return line, trace, timeTemplate, timeText
+        
+    def _Data_for_pendulum_simulation(self, states, length):      
+        xData = length * np.sin(states)
+        yData = -length * np.cos(states)
 
+        return xData, yData   
+    
     def _Animate_pendulum_simulation(self, i, xData, yData, line, trace, timeTemplate, timeText):
         line.set_data([0, xData[i]], [0, yData[i]])
         trace.set_data(xData[:i], yData[:i])
