@@ -1,20 +1,7 @@
 import numpy as np
-from scipy.integrate import solve_ivp
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import scipy
 from scipy.linalg import solve_continuous_are, solve_discrete_are
 
-class ControlSystem():
-    def __init__(self, FurutaPendulum):
-        self.FurutaPendulum = FurutaPendulum
-        
-    def Control_Estrategy():
-        pass
-        
-    def SwitchControl():
-        pass
-        
 # Full State Feedback
 class FSFB:
     def __init__(self, A, B, C, D, dt: float):
@@ -126,21 +113,23 @@ class PI():
 class Swing_up():
     def __init__(self, FurutaPendulum):
         self.FurutaPendulum = FurutaPendulum
+        self.Jp = self.FurutaPendulum.Jp
+        self.Mp = self.FurutaPendulum.Mp
+        self.gravityForce = self.FurutaPendulum.gravityForce
+        self.lp = self.FurutaPendulum.lp 
+        
+        self.Energy_equilibrium = 1/2*self.Jp*0**2 + self.Mp*self.gravityForce*self.lp*(np.cos(np.pi) - 1)      
     
-    def EnergySystem(self):        
-        Energy = (1/2 * (self.FurutaPendulum.Jb + self.FurutaPendulum.Mp + (self.FurutaPendulum.lb **2)) * self.FurutaPendulum.pendulumVelocity**2) - (self.FurutaPendulum.Mp * self.FurutaPendulum.gravityForce * self.FurutaPendulum.lb  *(np.cos(self.FurutaPendulum.pendulumAngle) + 1))
-        return Energy
+    def get_energy_equilibrium(self):     
+        return self.Energy_equilibrium
     
-    def SignalControlTorque(self, Energy, numberBalances):
-        s = (numberBalances * self.FurutaPendulum.gravityForce * np.sign(Energy) * self.FurutaPendulum.pendulumVelocity * np.cos(self.FurutaPendulum.pendulumAngle)) / self.FurutaPendulum.r
-
-    def satng(x, sat):
-        if x < sat and x > -sat:
-            return x
-        elif x < -sat:
-            return -sat
-        else:
-            return sat
+    def get_energy_current(self, i, state):     
+        Energy_current = 1/2*self.Jp*state[i,3]**2 + self.Mp*self.gravityForce*self.lp*(np.cos(state[i,2]) - 1)
+        return Energy_current
+    
+    def get_signal_control(self, k, i, state, E, E0):
+        u = k*(E- E0)*np.sign(state[i,3]*np.cos(state[i,2]))
+        return u
     
 class QLearning():
     def __init__(self, actions, learning_rate=0.01, reward_decay=0.9, e_greedy=0.9):

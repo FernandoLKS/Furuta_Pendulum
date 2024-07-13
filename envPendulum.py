@@ -10,29 +10,25 @@ class FurutaPendulum():
         self.lp = 0.075                     # Length to the pendulum's center of mass (m)
         self.Jb = 0.00094057                # Moment of inertia of the arm (kg.m^2)
         self.Jp = 0.0002175                 # Moment of inertia of the pendulum (kg.m^2)
-        self.Bb = 0.0008                    # Viscous friction coefficient for the arm (N.m.s)
-        self.Bp = 0.0008                    # Viscous friction coefficient for the pendulum (N.m.s)
+        self.Bb = 0.0001                    # Viscous friction coefficient for the arm (N.m.s)
+        self.Bp = 0.0001                    # Viscous friction coefficient for the pendulum (N.m.s)
         self.tau_m = 0                      # Applied torque (N.m)
         self.gravityForce = 9.81            # Gravitational acceleration (m/s^2) 
         
-        self.armAngle = 0                   # Angle of the arm (rad)
-        self.armVelocity = 0                # Velocity of the arm (rad/s)
-        self.armAcceleration = 0            # Acceleration of the arm (rad/s^2)
-        self.pendulumAngle = 0              # Angle of the pendulum (rad)
-        self.pendulumVelocity = 0           # Velocity of the pendulum (rad/s)
-        self.pendulumAcceleration = 0       # Acceleration of the pendulum (rad/s^2)
+        self.theta = np.zeros(3)
+        self.alpha = np.zeros(3)
     
-    def Dynamic(self, t, state, u=0):
-        self.armAngle = state[0]
-        self.armVelocity = state[1]
-        self.pendulumAngle = state[2] 
-        self.pendulumVelocity = state[3]  
+    def Dynamic(self, t, state, u):        
+        self.theta[0] = state[0]  # arm angle
+        self.theta[1] = state[1]  # arm velocity angle
+        self.alpha[0] = state[2]  # pendulum angle
+        self.alpha[1] = state[3]  # pendulum velocity angle
         
         self.tau_m = u  
         
         # equations of motion arm and pendulum
-        self.armAcceleration = (self.tau_m - (self.Bb * self.armVelocity) + ((self.Mp * self.lp * self.r) * ((self.pendulumAcceleration * np.cos(self.pendulumAngle)) - (self.pendulumVelocity**2 * np.sin(self.pendulumAngle))))) / (self.Jb + (self.Mp * self.r**2))
-        self.pendulumAcceleration = ((-self.Bb * self.pendulumVelocity) + (self.Mp * self.lp * self.r * self.armAcceleration * np.cos(self.pendulumAngle)) - (self.Mp * self.lp * self.gravityForce * np.sin(self.pendulumAngle))) / (self.Jp + (self.Mp * self.lp**2))
+        self.theta[2] = (self.tau_m - (self.Bb * self.theta[1]) + ((self.Mp * self.lp * self.r) * ((self.alpha[2] * np.cos(self.alpha[0])) - (self.alpha[1]**2 * np.sin(self.alpha[0]))))) / (self.Jb + (self.Mp * self.r**2))
+        self.alpha[2] = ((-self.Bb * self.alpha[1]) + (self.Mp * self.lp * self.r * self.theta[2] * np.cos(self.alpha[0])) - (self.Mp * self.lp * self.gravityForce * np.sin(self.alpha[0]))) / (self.Jp + (self.Mp * self.lp**2))
                   
-        derivates = [self.armVelocity, self.armAcceleration, self.pendulumVelocity, self.pendulumAcceleration]
+        derivates = [self.theta[1], self.theta[2], self.alpha[1], self.alpha[2]]
         return derivates

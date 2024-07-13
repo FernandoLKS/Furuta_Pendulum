@@ -1,12 +1,12 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
+from envPendulum import FurutaPendulum
 
 class GraphSimulation(): 
     
-    def __init__(self, simulation):
-        self.simulation = simulation
-        self.FurutaPendulum = simulation.get_FurutaPendulumInstance()
+    def __init__(self):
+        self.FurutaPendulum = FurutaPendulum()
         
     def Plot_phase_maps(self): 
         fig, axs = plt.subplots(1, 2, figsize=(10, 5))            
@@ -52,11 +52,11 @@ class GraphSimulation():
         
         return X, Y, derivatesX, derivatesY, magnitude
 
-    def Plot_pendulum_simulation(self):
+    def Plot_pendulum_simulation(self, states, ts):
         fig, axs = plt.subplots(1, 2, figsize=(15, 5))
         
-        ArmAngles = self.simulation.get_States()[:, 0]
-        PendulumAngles = self.simulation.get_States()[:, 2] 
+        ArmAngles = states[:, 0]
+        PendulumAngles = states[:, 2] 
         
         xDataArm, yDataArm = self._Data_for_pendulum_simulation(ArmAngles, self.FurutaPendulum.r)
         xDataPendulum, yDataPendulum = self._Data_for_pendulum_simulation(PendulumAngles, self.FurutaPendulum.Lp)      
@@ -64,8 +64,8 @@ class GraphSimulation():
         lineArm, traceArm, timeTemplateArm, timeTextArm = self._Fig_pendulum_simulation(axs[0], 'Arm Motion', self.FurutaPendulum.r)        
         linePendulum, tracePendulum, timeTemplatePendulum, timeTextPendulum = self._Fig_pendulum_simulation(axs[1], 'Pendulum Motion', self.FurutaPendulum.Lp)
 
-        arm_anim = animation.FuncAnimation(fig, self._Animate_pendulum_simulation, fargs=(xDataArm, yDataArm, lineArm, traceArm, timeTemplateArm, timeTextArm), frames=len(xDataArm), interval=10, blit=True)
-        pendulum_anim = animation.FuncAnimation(fig, self._Animate_pendulum_simulation, fargs=(xDataPendulum, yDataPendulum, linePendulum, tracePendulum, timeTemplatePendulum, timeTextPendulum), frames=len(xDataPendulum), interval=10, blit=True)
+        arm_anim = animation.FuncAnimation(fig, self._Animate_pendulum_simulation, fargs=(xDataArm, yDataArm, lineArm, traceArm, timeTemplateArm, timeTextArm, ts), frames=len(xDataArm), interval=10, blit=True)
+        pendulum_anim = animation.FuncAnimation(fig, self._Animate_pendulum_simulation, fargs=(xDataPendulum, yDataPendulum, linePendulum, tracePendulum, timeTemplatePendulum, timeTextPendulum, ts), frames=len(xDataPendulum), interval=10, blit=True)
 
         plt.tight_layout()
         plt.show()
@@ -88,8 +88,8 @@ class GraphSimulation():
 
         return xData, yData   
     
-    def _Animate_pendulum_simulation(self, i, xData, yData, line, trace, timeTemplate, timeText):
+    def _Animate_pendulum_simulation(self, i, xData, yData, line, trace, timeTemplate, timeText, ts):
         line.set_data([0, xData[i]], [0, yData[i]])
         trace.set_data(xData[:i], yData[:i])
-        timeText.set_text(timeTemplate % (i * self.simulation.ts))
+        timeText.set_text(timeTemplate % (i * ts))
         return line, trace, timeText 
