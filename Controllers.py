@@ -108,17 +108,27 @@ class VLQR(LQR):
         self.calculate_K()
         
 class PI():
-    pass
+    def __init__(self, ts):
+        self.kp = 4
+        self.ki = 0.1
+        self.ts = ts
+        self.kp = 0
+    
+    def get_signal_control(self, error, errorp, u):
+        du = self.kp*(error - errorp) + self.ki*error*self.ts
+        u += du   
+        
+        return u    
 
 class Swing_up():
-    def __init__(self, FurutaPendulum):
-        self.FurutaPendulum = FurutaPendulum
-        self.Jp = self.FurutaPendulum.Jp
-        self.Mp = self.FurutaPendulum.Mp
-        self.gravityForce = self.FurutaPendulum.gravityForce
-        self.lp = self.FurutaPendulum.lp 
+    def __init__(self, Jp, Mp, gravityForce, lp, k):
+        self.Jp = Jp
+        self.Mp = Mp
+        self.gravityForce = gravityForce
+        self.lp = lp 
+        self.k = k
         
-        self.Energy_equilibrium = 1/2*self.Jp*0**2 + self.Mp*self.gravityForce*self.lp*(np.cos(np.pi) - 1)      
+        self.Energy_equilibrium = 1/2*self.Jp*0**2 + self.Mp*self.gravityForce*self.lp*(np.cos(np.pi) - 1)  
     
     def get_energy_equilibrium(self):     
         return self.Energy_equilibrium
@@ -127,8 +137,11 @@ class Swing_up():
         Energy_current = 1/2*self.Jp*state[i,3]**2 + self.Mp*self.gravityForce*self.lp*(np.cos(state[i,2]) - 1)
         return Energy_current
     
-    def get_signal_control(self, k, i, state, E, E0):
-        u = k*(E- E0)*np.sign(state[i,3]*np.cos(state[i,2]))
+    def get_signal_control(self, i, state):
+        E0 = self.get_energy_equilibrium()
+        E = self.get_energy_current(i, state)
+        
+        u = self.k*(E- E0)*np.sign(state[i,3]*np.cos(state[i,2]))
         return u
     
 class QLearning():
@@ -149,42 +162,3 @@ class QLearning():
     
     def Learn(self, state, action, reward, next_state):
         q_predict = self.q_table.loc[state, action]
-        
-'''       
-def lqr(A,B,Q,R):
-    # Solves for the optimal infinite-horizon LQR gain matrix given linear system (A,B) 
-    # and cost function parameterized by (Q,R)
-    
-    # solve DARE:
-    M=scipy.linalg.solve_discrete_are(A,B,Q,R)
-
-    # K=(B'MB + R)^(-1)*(B'MA)
-    #return np.dot(scipy.linalg.inv(np.dot(np.dot(B.T,M),B)+R),(np.dot(np.dot(B.T,M),A)))
-    return np.linalg.inv(R + B.T @ M @ B) @ (B.T @ M @ A)
-
-# F : Rn -> Rm
-#J = m x n
-def Jacobian(f, x0, eps=1e-10):
-    y0 = f(x0)
-    m = len(y0)
-    n = len(x0)
-
-    J = np.zeros((m, n))
-
-    for j in range(n): # for each input variable
-        dx = np.zeros(n)
-        dx[j] = eps
-        y1 = f(x0 + dx/2)
-        y0 = f(x0 - dx/2) # tustin
-        J[:,j] = (y1 - y0)/eps
-
-    return J  
-      
-def satng(x, sat):
-    if x < sat and x > -sat:
-        return x
-    elif x < -sat:
-        return -sat
-    else:
-        return sat
-'''         

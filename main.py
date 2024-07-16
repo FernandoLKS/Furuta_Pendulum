@@ -7,7 +7,7 @@ import numpy as np
 
 def main():
     ts = 0.01
-    max_iterations = 1000
+    max_iterations = 10000
     initial_conditions = [np.pi, 0, 0, 0]
     
     FPendulum = FurutaPendulum()  
