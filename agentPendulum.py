@@ -3,7 +3,7 @@ import pandas as pd
 from envPendulum import FurutaPendulum
 from graphSimulation import GraphSimulation
 from fileManager import FileManipulation
-import matplotlib.pyplot as plt
+from plot import show_rewards_and_steps, show_q_table
 
 # Discrete states 
 rangeAction = 0.6
@@ -129,7 +129,7 @@ class Qlearning:
 
         for episode in range(self.num_episodes):
             if (episode+1) % (self.num_episodes/20) == 0:
-                self.file_manager.save_graphic(show_rewards(self.num_episodes, self.list_total_rewards, self.list_steps_by_episode), 'graphic.png')  
+                self.file_manager.save_graphic(show_rewards_and_steps(self.num_episodes, self.list_total_rewards, self.list_steps_by_episode), 'graphic.png')  
                 self.file_manager.save_data_frame(self.q_table, 'q_table.csv')
             
             states = self.reset()
@@ -158,14 +158,13 @@ class Qlearning:
             print(f"Episode {episode+1}/{self.num_episodes} - Total Reward: {total_reward:.4f} - Total steps: {step}")   
         print("\nTraining complete.")
         
-        fig = show_rewards(self.num_episodes, self.list_total_rewards, self.list_steps_by_episode)  
-        show_q_table(self.q_table)
+        fig = show_rewards_and_steps(self.num_episodes, self.list_total_rewards, self.list_steps_by_episode)  
+        show_q_table(self.q_table, number_of_states, numberActions)
+        
         self.file_manager.save_data_frame(self.q_table, 'q_table.csv')
         self.file_manager.save_graphic(fig, 'graphic.png')
         
         simulation.Plot_pendulum_simulation(states, 0.01)
-        
-
     
 def discretize_state(state):
     state[0] = state[0] % (2 * np.pi)
@@ -187,54 +186,3 @@ def discretize_state(state):
     #print(f"State: {state} = {intervals}")
 
     return discretized_state 
-
-def show_rewards(num_episodes, values_reward, values_steps):
-    window_size = int(num_episodes / 20 - 1)
-
-    moving_avg_reward = np.convolve(values_reward, np.ones(window_size) / window_size, mode='valid')
-    moving_avg_steps = np.convolve(values_steps, np.ones(window_size) / window_size, mode='valid')
-    
-    fig, axs = plt.subplots(2, 2, figsize=(12, 12))
-    axs = axs.flatten()
-    
-    axs[0].plot(values_reward, label='Total Rewards')
-    axs[0].set_ylim(min(values_reward), 0)
-    axs[0].set_title('Total Rewards per Episode')
-    axs[0].set_xlabel('Episode')
-    axs[0].set_ylabel('Total Rewards')
-    axs[0].legend()
-    
-    axs[1].plot(values_steps, label='Total Steps')
-    axs[1].set_ylim(0, max(values_steps))
-    axs[1].set_title('Total Steps per Episode')
-    axs[1].set_xlabel('Episode')
-    axs[1].set_ylabel('Total Steps')
-    axs[1].legend()
-
-    axs[2].plot(range(window_size - 1, len(values_reward)), moving_avg_reward, label='Moving Average (Rewards)', color='red')
-    axs[2].set_ylim(min(moving_avg_reward)-1, max(moving_avg_reward)+1)
-    axs[2].set_title('Moving Average (Rewards)')
-    axs[2].set_xlabel('Episode')
-    axs[2].set_ylabel('Average Rewards')
-    axs[2].legend()
-
-    axs[3].plot(range(window_size - 1, len(values_steps)), moving_avg_steps, label='Moving Average (Steps)', color='red')
-    axs[3].set_ylim(min(moving_avg_steps)-1, max(moving_avg_steps)+1)
-    axs[3].set_title('Moving Average (Steps)')
-    axs[3].set_xlabel('Episode')
-    axs[3].set_ylabel('Average Steps')
-    axs[3].legend()
-    
-    plt.tight_layout()
-    plt.close()
-    return fig
-    
-def show_q_table(q_table):    
-    #max_value = self.q_table.max().max()
-    print('-------------------------------------------------------------------------------------')
-    print(q_table)
-    print('number of states predicted:', number_of_states)
-    print('number of q-values predicted:', number_of_states * len(discrete_actions))
-    print('number of states created in simulation', len(q_table))      
-    print('-------------------------------------------------------------------------------------\n') 
-    return q_table      

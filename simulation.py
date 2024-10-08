@@ -4,9 +4,10 @@ from fileManager import FileManipulation
 from envPendulum import FurutaPendulum
 from graphSimulation import GraphSimulation
 from controllers import Swing_up
+from plot import show_temporal_evolution
 
 class Simulation():
-    def __init__(self, Controller, ts=0.01, max_iterations=2000, initial_state=[0, 0, 0.01, 0]):
+    def __init__(self, Controller, ts=0.01, max_iterations=2000, initial_state=[0, 0, 0, 0.001]):
         self.file_manager = FileManipulation()    
         self.FPendulum = FurutaPendulum()
         self.graphSimulation = GraphSimulation()    
@@ -14,14 +15,15 @@ class Simulation():
         
         self.ts = ts
         self.max_iterations = max_iterations
-        self.swing_up = Swing_up()
+        self.swing_up = Swing_up(k=5)
         
         self.state = np.zeros((max_iterations, 4)) 
         self.state[0, :] = initial_state
+        self.signal_control = []
         
         self.u_saturation = 0.6
         self.u = 0 
-        self.variation_angle = 0.4
+        self.variation_angle = 0.4    
         
         self.control()
     
@@ -52,10 +54,11 @@ class Simulation():
                 self.u = self.saturation_signal(self.u, self.u_saturation)        
                 print(f'*** STABILIZING CONTROL *** Control Signal: {self.u:.8f} -- Error: {self.error:.6f}')    
                 
-        #print(self.state[:, 0].max(), self.state[:, 1].max(), self.state[:, 2].max(), self.state[:, 3].max())
-        #print(self.state[:, 0].min(), self.state[:, 1].min(), self.state[:, 2].min(), self.state[:, 3].min())         
-        
+            self.signal_control.append(self.u)      
+            
+        show_temporal_evolution(self.state[:, 2], self.state[:, 3], self.signal_control)          
         self.graphSimulation.Plot_pendulum_simulation(self.state, self.ts) 
+        
         
     @staticmethod  
     def saturation_signal(x, sat):
