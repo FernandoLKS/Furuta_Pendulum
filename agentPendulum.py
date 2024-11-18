@@ -18,7 +18,6 @@ discrete_pendulum_velocity_bins = [-np.inf, -10, -5, -2, -1,-0.5, -0.1, -0.02, 0
 number_of_states = (len(discrete_pendulum_angle_bins)-1) * (len(discrete_pendulum_velocity_bins)-1)
 number_of_q_values = number_of_states * numberActions
 
-#print(number_of_q_values)
 class Qlearning:
     def __init__(self, learning_rate=0.05, reward_decay=0.95, num_episodes = 100000, max_steps_per_episode = 1000):     
         self.learning_rate = learning_rate
@@ -32,7 +31,7 @@ class Qlearning:
         self.file_manager = FileManipulation()  
         
         self.Training()      
-    
+
     def ChooseAction(self, state, epsilon):                    
         discretized_state = discretize_state(state)    
         
@@ -53,8 +52,7 @@ class Qlearning:
             if np.array_str(discretized_state) not in self.q_table.index:
                 self.q_table.loc[np.array_str(discretized_state)] = np.full(len(discrete_actions), 0, dtype=float)
                 
-            q_current = self.q_table.loc[np.array_str(discretized_state), action]   
-                  
+            q_current = self.q_table.loc[np.array_str(discretized_state), action]                     
             q_target = reward        
         else:        
             discretized_state = discretize_state(state)
@@ -72,9 +70,6 @@ class Qlearning:
         self.q_table.loc[np.array_str(discretized_state), action] += self.learning_rate * (q_target - q_current)
     
     def reset(self):
-        
-        #initial_arm_angle = np.random.uniform(0, 2*np.pi)
-        #initial_arm_velocity = np.random.uniform(-700, 700)
         initial_arm_angle = 0
         initial_arm_velocity = 0
         
@@ -91,17 +86,19 @@ class Qlearning:
         current_state = np.array(states[-1])          
         next_state = self.env.solve_state_ODE(0, current_state, action, ts=0.01)                                    
                        
-        state_variance = current_state - ref_state
-            
-        Q = [0, 0, 10, 1]
-        state_variance = (state_variance * Q)**2
-            
-        reward = -(np.sum(state_variance))  
-                        
-        Condition1 = np.abs(next_state[2]) > np.pi+anglePendulumVariation or np.abs(next_state[2]) < np.pi-anglePendulumVariation
-        #Condition2 = np.abs(current_state[1]) > np.pi+1 or np.abs(current_state[1]) < np.pi-1
+        state_variance = current_state - ref_state            
+           
+        Q = [0, 1, 10, 1]
+        R = 0.1
         
-        done = Condition1        
+        state_variance = (state_variance * Q)**2
+        control_variance = (action * R)**2
+            
+        # reward function = - ( (10*Δ𝛼)² + (1*Δ𝛼̇)² + (0.1*u)² )
+        reward = -(np.sum(state_variance) + control_variance)  
+                        
+        Condition = np.abs(next_state[2]) > np.pi+anglePendulumVariation or np.abs(next_state[2]) < np.pi-anglePendulumVariation
+        done = Condition        
         
         return next_state, reward, done
         
@@ -114,11 +111,6 @@ class Qlearning:
         
         # e_greddy constant
         #epsilon = 0.8
-            
-        #if current_episode/self.num_episodes < 0.5: epsilon = 0.9
-        #elif current_episode/self.num_episodes < 0.6: epsilon = 0.5
-        #elif current_episode/self.num_episodes < 0.7: epsilon = 0.2
-        #else: epsilon = 0.0
         
         return epsilon    
     

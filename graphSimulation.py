@@ -3,36 +3,56 @@ import matplotlib.animation as animation
 import numpy as np
 from envPendulum import FurutaPendulum
 
-class GraphSimulation(): 
-    
+class GraphSimulation():     
     def __init__(self):
         self.FurutaPendulum = FurutaPendulum()
-        
-    def Plot_phase_maps(self): 
+            
+    def Plot_phase_maps(self, controller, id_controller): 
         fig, axs = plt.subplots(1, 2, figsize=(10, 5))            
-             
-        self._Fig_phase_map(axs[0], 0, 1, None, 'Arm angle [rad]', 'Arm velocity [rad/s]')                                                  
-        self._Fig_phase_map(axs[1], 2, 3, np.array([[-np.pi, 0], [0,0], [np.pi,0]]), 'Pendulum angle [rad]', 'Pendulum velocity [rad/s]')  
+
+        arm_angle_limits = (-np.pi, np.pi)
+        arm_velocity_limits = (-10, 10)
+        self._Fig_phase_map(axs[0], 0, 1, None, 'Ângulo do Braço [rad]', 'Velocidade Angular do Braço [rad/s]', 
+                            controller, id_controller, arm_angle_limits, arm_velocity_limits)
+
+        pendulum_angle_limits = (np.pi-0.4, np.pi+0.4)
+        pendulum_velocity_limits = (-10, 10)
+
+        equilibrium_points_instables = np.array([[np.pi, 0]])
+        equilibrium_points_stables = np.array([])
+
+        self._Fig_phase_map(axs[1], 2, 3, (equilibrium_points_instables, equilibrium_points_stables), 
+                            'Ângulo do Pêndulo [rad]', 'Velocidade Angular do Pêndulo [rad/s]', controller, 
+                            id_controller, pendulum_angle_limits, pendulum_velocity_limits)
+
 
         plt.tight_layout()
         plt.show()
-        
-    def _Fig_phase_map(self, ax, indexX, indexY, equilibriumPoints, xLabel, yLabel):
-        X, Y, derivatesX, derivatesY, magnitude = self._Data_for_phase_map(indexX, indexY)
+            
+    def _Fig_phase_map(self, ax, indexX, indexY, equilibriumPoints, xLabel, yLabel, controller, id_controller, x_limits, y_limits):
+        X, Y, derivatesX, derivatesY, magnitude = self._Data_for_phase_map(indexX, indexY, controller, id_controller, x_limits, y_limits)
 
         if equilibriumPoints is not None:
-            ax.scatter(equilibriumPoints[:, 0], equilibriumPoints[:, 1], color='r', s=10, zorder=2)           
+            equilibriumPoints_instables, equilibriumPoints_stables = equilibriumPoints
+            if equilibriumPoints_instables.size > 0:
+                ax.scatter(equilibriumPoints_instables[:, 0], equilibriumPoints_instables[:, 1], color='r', s=10, zorder=2, label="Ponto de Equilíbrio Instável")
+            if equilibriumPoints_stables.size > 0:
+                ax.scatter(equilibriumPoints_stables[:, 0], equilibriumPoints_stables[:, 1], color='g', s=10, zorder=2, label="Ponto de Equilíbrio Estável")
 
         ax.streamplot(X, Y, derivatesX, derivatesY, color='b', linewidth=magnitude, density=1.6)
-        ax.set_title(f'{xLabel} x {yLabel}')
+        #ax.set_title(f'{xLabel} x {yLabel}')
         ax.set_xlabel(xLabel)
         ax.set_ylabel(yLabel)
         ax.grid()
 
-    def _Data_for_phase_map(self, indexX, indexY):
-        limit = 2 * np.pi 
+        # Adiciona uma legenda se houver pontos de equilíbrio plotados
+        if equilibriumPoints is not None and (equilibriumPoints_instables.size > 0 or equilibriumPoints_stables.size > 0):
+            ax.legend(loc='upper right')
+            
+    def _Data_for_phase_map(self, indexX, indexY, controller, id_controller, x_limits, y_limits):
         numPoints = 100
-        X, Y = np.meshgrid(np.linspace(-limit, limit, numPoints), np.linspace(-limit, limit, numPoints)) 
+        X, Y = np.meshgrid(np.linspace(x_limits[0], x_limits[1], numPoints), 
+                        np.linspace(y_limits[0], y_limits[1], numPoints)) 
 
         derivatesX = np.zeros_like(X)
         derivatesY = np.zeros_like(Y)
@@ -41,9 +61,20 @@ class GraphSimulation():
             for j in range(numPoints):
                 state = np.zeros(4)
                 state[indexX] = X[i, j]     
-                state[indexY] = Y[i, j]                
-                derivates = self.FurutaPendulum.Dynamic(0, state, self.FurutaPendulum.tau_m)
+                state[indexY] = Y[i, j]   
 
+                # without control
+                if id_controller == 0:  
+                    derivates = self.FurutaPendulum.Dynamic(0, state, 0)
+
+                # vlqr control    
+                elif id_controller == 4:
+                    derivates = self.FurutaPendulum.Dynamic(0, state, controller.signal_control(state, state*0.99))
+
+                # pi, lqr, swing-up or rl control
+                else:                    
+                    derivates = self.FurutaPendulum.Dynamic(0, state, controller.signal_control(state))
+                    
                 derivatesX[i, j] = derivates[indexX]
                 derivatesY[i, j] = derivates[indexY]
 
