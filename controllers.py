@@ -6,7 +6,7 @@ from envPendulum import FurutaPendulum
 import numpy as np
 from scipy.integrate import solve_ivp  
 
-U_SATURATION = 0.6
+U_SATURATION = 0.1
 
 FPendulum = FurutaPendulum()
 
@@ -47,25 +47,30 @@ class RL_controller():
             
         return float(u)    
     
-class PI_controller():
+class PID_controller():
     def __init__(self, ts):
-        self.Kp = 1.15
-        self.Ki = 0.15
-      
+        self.Kp = 0.5
+        self.Ki = 0.1
+        self.Kd = 0.02 
+
         self.ts = ts
         self.integral_error = 0
-    
+        self.previous_error = 0
+
     def signal_control(self, state):
         error = [np.sin(np.pi) - np.sin(state[2]), np.cos(np.pi) - np.cos(state[2])]        
         error = error[0] + error[1]
         
-        self.integral_error += error   
+        self.integral_error += error 
 
         P = self.Kp * error                
         I = self.Ki * self.integral_error * self.ts 
+        D = self.Kd * (error - self.previous_error) / self.ts
 
-        u = (P + I) 
-        u = saturation_signal(u, U_SATURATION)
+        self.previous_error = error
+
+        u = (P + I + D) 
+        u = saturation_signal(u, U_SATURATION)     
     
         return float(u) 
 
@@ -87,7 +92,7 @@ class LQR_controller():
         
         self.Q = np.eye(ns)*0
         self.Q[2,2] = 1
-        self.R = [[0.01]]       
+        self.R = [[100]]       
         
         self.discretize()
         self.calcule_gain()
@@ -126,8 +131,8 @@ class VLQR_controller():
         
         self.D = np.zeros((ny, 1))
         
-        self.Q = np.diag([0, 1, 0, 1, 100]) # considering velocities and pendulum angle error
-        self.R = np.array([[0.1]])            
+        self.Q = np.diag([0, 0.001, 0, 0.001, 0.01])
+        self.R = np.array([[100]])            
          
         self.discretize()
         
@@ -175,7 +180,7 @@ def saturation_signal(x, sat):
         return sat     
     
 @staticmethod        
-def Jacobian(f, x0, eps=1e-10):
+def Jacobian(f, x0, eps=1e-6):
     y0 = f(x0)
     m = len(y0)
     n = len(x0)

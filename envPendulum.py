@@ -5,7 +5,7 @@ class FurutaPendulum():
     def __init__(self):
         self.Mb = 0.173                     # Mass of the arm (kg)
         self.Mp = 0.029                     # Mass of the pendulum (kg)
-        self.r = 0.005                      # Radius of the arm (m)
+        self.r = 0.115                      # Radius of the arm (m)
         self.Lp = 0.15                      # Total length of the pendulum (m)
         self.lp = 0.075                     # Length to the pendulum's center of mass (m)
         self.Jb = 0.00094057                # Moment of inertia of the arm (kg.m^2)

@@ -1,19 +1,20 @@
 import numpy as np
 import pandas as pd
 from envPendulum import FurutaPendulum
-from graphSimulation import GraphSimulation
+from graphSimulation import GraphDynamicSimulation
 from fileManager import FileManipulation
 from plot import show_rewards_and_steps, show_q_table
 
 # Discrete states 
-rangeAction = 0.6
-numberActions = 7
+rangeAction = 0.1
+numberActions = 9
 anglePendulumVariation = 0.4
 
 discrete_actions = np.linspace(-rangeAction, rangeAction, numberActions)
 
+#discrete_arm_velocity_bins = [-np.inf, -60, -30, -10 -1, 0, 1, 10, 30, 60, np.inf]
 discrete_pendulum_angle_bins = [np.pi - anglePendulumVariation, np.pi - anglePendulumVariation/2, np.pi - anglePendulumVariation/4, np.pi - anglePendulumVariation/8, np.pi - anglePendulumVariation/16,  np.pi, np.pi + anglePendulumVariation/16, np.pi + anglePendulumVariation/8, np.pi + anglePendulumVariation/4, np.pi + anglePendulumVariation/2, np.pi + anglePendulumVariation]
-discrete_pendulum_velocity_bins = [-np.inf, -10, -5, -2, -1,-0.5, -0.1, -0.02, 0, 0.02, 0.1, 0.5, 1, 2, 5, 10, np.inf]
+discrete_pendulum_velocity_bins = [-np.inf, -40, -20, -10, -5, -2, -1,-0.5, -0.1, -0.02, 0, 0.02, 0.1, 0.5, 1, 2, 5, 10, 20, 40, np.inf]
 
 number_of_states = (len(discrete_pendulum_angle_bins)-1) * (len(discrete_pendulum_velocity_bins)-1)
 number_of_q_values = number_of_states * numberActions
@@ -24,7 +25,6 @@ class Qlearning:
         self.gamma = reward_decay
         self.num_episodes = num_episodes
         self.max_steps_per_episode = max_steps_per_episode
-        self.variation_angle = 0.
         
         self.env = FurutaPendulum()
         self.q_table = pd.DataFrame(columns=discrete_actions, dtype=np.float64)
@@ -75,6 +75,7 @@ class Qlearning:
         
         initial_pendulum_angle = np.random.uniform(discrete_pendulum_angle_bins[0], discrete_pendulum_angle_bins[-1])
         initial_pendulum_velocity = np.random.uniform(discrete_pendulum_velocity_bins[1]-5, discrete_pendulum_velocity_bins[-2]+5)
+        #initial_arm_velocity = np.random.uniform(discrete_pendulum_velocity_bins[1]-5, discrete_pendulum_velocity_bins[-2]+5)
         
         reset_state = np.array([[initial_arm_angle, initial_arm_velocity, initial_pendulum_angle, initial_pendulum_velocity]])
         
@@ -88,7 +89,7 @@ class Qlearning:
                        
         state_variance = current_state - ref_state            
            
-        Q = [0, 1, 10, 1]
+        Q = [0, 0, 10, 1]
         R = 0.1
         
         state_variance = (state_variance * Q)**2
@@ -115,7 +116,7 @@ class Qlearning:
         return epsilon    
     
     def Training(self):        
-        simulation = GraphSimulation()
+        simulation = GraphDynamicSimulation()
         self.list_total_rewards = []
         self.list_steps_by_episode = []
 
@@ -165,16 +166,7 @@ def discretize_state(state):
     bins = [discrete_pendulum_angle_bins, discrete_pendulum_velocity_bins]
     discretized_state = np.empty(len(bins), dtype=int)
 
-    #intervals = []
-
     for i in range(len(bins)):
         discretized_state[i] = np.digitize(state[i+2], bins[i])
-        
-        #lower_bound = bins[i][discretized_state[i] - 1] if discretized_state[i] > 0 else None
-        #upper_bound = bins[i][discretized_state[i]] if discretized_state[i] < len(bins[i]) else None
-        
-        #intervals.append([lower_bound, upper_bound])
-
-    #print(f"State: {state} = {intervals}")
 
     return discretized_state 
